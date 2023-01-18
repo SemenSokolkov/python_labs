@@ -58,6 +58,7 @@ def ReadFromCSV(fileName : str) -> list:
             resultListDict.append(dict);        
     return resultListDict;
 
+#Разрезание записи с ключом ФИО на 3 отдельных
 def SplitFullNameFromDict(sourceDict : dict) -> dict:
     resultDict = dict();
     strs = sourceDict["ФИО"].split(' ');
@@ -67,10 +68,17 @@ def SplitFullNameFromDict(sourceDict : dict) -> dict:
     resultDict["Зарплата"] = sourceDict["Зарплата"];
     return resultDict;
 
+def GetSumFromDict(sourceDict1 : dict, sourceDict2 : dict) -> dict:
+    resultDict = dict();
+    resultDict["Зарплата"] = int(sourceDict2["Зарплата"]) + int(sourceDict1["Зарплата"]); 
+    return resultDict;
+
 #Генерация изначального файла .csv
 WriteInCSVFromListList(GenerateDataSet(), FILENAME);
-
-#Задача 1, разрезать столбец ФИО на отдельные столбцы и записать в новый файл .csv
+#ЗАДАЧА 1, разрезать столбец ФИО на отдельные столбцы с помощью map и записать в новый файл .csv
 dataSet : list = ReadFromCSV(FILENAME);
 newDataSet : list = OverrideMap(SplitFullNameFromDict, dataSet);
 WriteInCSVFromListDict(newDataSet, OUTPUTFILE);
+#ЗАДАЧА 2, подсчёт суммы с помощью reduce
+salarySum = OverrideReduce(GetSumFromDict, dataSet)["Зарплата"];
+print("Сумма всех зарплат в файле: " + str(salarySum));
