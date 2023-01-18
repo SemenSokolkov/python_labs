@@ -2,20 +2,21 @@ import csv;
 import random;
 FILENAME : str = "data_set.csv"; #имя изначального файла с данными
 OUTPUTFILE : str = "new_data_set.csv"; #имя преобразованного файла с данными
+
 #переопределённый map
-def OverrideMap(func, iterable : list) -> list:
+def OverrideMap(func, sourceList : list) -> list:
     resultList = list();
-    for obj in iterable:
+    for obj in sourceList:
         resultList.append(func(obj));
     return resultList;
 
 #переопределённый reduce
-def OverrideReduce(func, iterable : list):
+def OverrideReduce(func, sourceList : list):
     index : int = 2;
-    length : int = len(iterable);
-    result = func(iterable[0], iterable[1]);
+    length : int = len(sourceList);
+    result = func(sourceList[0], sourceList[1]);
     while(index < length):
-        result = func(result, iterable[index]);
+        result = func(result, sourceList[index]);
         index += 1;
     return result;
 
@@ -34,11 +35,42 @@ def GenerateDataSet() -> list:
         i += 1;
     return Persons;
    
-#Запись в .csv
-def WriteInCSV(dataSet : list, fileName : str):
+#Запись в .csv из списка списков
+def WriteInCSVFromListList(dataSet : list, fileName : str):
      with open(fileName, "w", newline="") as file:
         writer = csv.writer(file, delimiter=',');
         writer.writerows(dataSet);
 
-#основной код
-WriteInCSV(GenerateDataSet(), FILENAME);
+#Запись в .csv из списка словарей        
+def WriteInCSVFromListDict(dataSet : list, fileName : str):
+    with open(fileName, "w", newline="") as file:
+        columns = list(dataSet[0].keys());
+        writer = csv.DictWriter(file, fieldnames=columns, delimiter=',');
+        writer.writeheader();   
+        writer.writerows(dataSet);
+
+#Чтение из .csv в виде списка словарей
+def ReadFromCSV(fileName : str) -> list:
+    with open(fileName, "r", newline="") as file:
+        reader = csv.DictReader(file);
+        resultListDict = list();
+        for dict in reader:
+            resultListDict.append(dict);        
+    return resultListDict;
+
+def SplitFullNameFromDict(sourceDict : dict) -> dict:
+    resultDict = dict();
+    strs = sourceDict["ФИО"].split(' ');
+    resultDict["Фамилия"] = strs[0];
+    resultDict["Имя"] = strs[1];
+    resultDict["Отчество"] = strs[2];
+    resultDict["Зарплата"] = sourceDict["Зарплата"];
+    return resultDict;
+
+#Генерация изначального файла .csv
+WriteInCSVFromListList(GenerateDataSet(), FILENAME);
+
+#Задача 1, разрезать столбец ФИО на отдельные столбцы и записать в новый файл .csv
+dataSet : list = ReadFromCSV(FILENAME);
+newDataSet : list = OverrideMap(SplitFullNameFromDict, dataSet);
+WriteInCSVFromListDict(newDataSet, OUTPUTFILE);
